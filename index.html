@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>zskizz brawl</title>
 
-      
+
     </head>
     <body>
     <header>
@@ -333,8 +333,8 @@
         </button>
     </a>
     </p>
-      
-      
+
+
 
 
 
@@ -357,106 +357,138 @@
         <div id="latest-video" class="video-item center"></div>
         <div id="most-liked" class="video-item"></div>
     </div>
-    <script>
-        // Reemplaza 'TU_API_KEY' con la clave de API que generaste
-        const apiKey = 'AIzaSyAkvKC8ItSAIrwqCGet7wITdaUgUx7ZDbM';
-        // Reemplaza 'ID_DEL_CANAL' con el ID de tu canal
-        const channelId = 'UCq-Vw1Ytro1bz6rTkd9D4zw';
-      
-        // URL de la API de YouTube
-        const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${apiKey}`;
+        <script>
+            // Reemplaza 'TU_API_KEY' con la clave de API que generaste
+            const apiKey = 'AIzaSyAkvKC8ItSAIrwqCGet7wITdaUgUx7ZDbM';
+            // Reemplaza 'ID_DEL_CANAL' con el ID de tu canal
+            const channelId = 'UCq-Vw1Ytro1bz6rTkd9D4zw';
 
-        // Función para obtener el número de suscriptores
-        async function getSubscriberCount() {
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const subscriberCount = data.items[0].statistics.subscriberCount;
-                document.getElementById('subscriber-count').textContent = `${formatSubscriberCount(subscriberCount)} `;
-            } catch (error) {
-                document.getElementById('subscriber-count').textContent = 'Error al cargar';
-                console.error('Error fetching data:', error.message);
-            }
-        }
+            // URL de la API de YouTube para obtener el número de suscriptores
+            const subscriberUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${apiKey}`;
 
-        // Formato para el número de suscriptores
-        function formatSubscriberCount(count) {
-            if (count >= 1000000) {
-                return (count / 1000000).toFixed(1) + 'M';
-            } else if (count >= 1000) {
-                return (count / 1000).toFixed(1) + 'k';
-            } else {
-                return count.toString();
-            }
-        }
-
-        // Llama a la función para obtener los suscriptores cuando la página carga
-        getSubscriberCount();
-         try {
-                const response = await fetch(url);
-                const data = await response.json();
-                const videos = data.items;
-
-                let mostViewedVideo = null;
-                let mostLikedVideo = null;
-                let latestVideo = videos[0];
-
-                // Ahora obtenemos las estadísticas de cada video
-                for (const video of videos) {
-                    const videoId = video.id.videoId;
-                    const stats = await getVideoStats(videoId);
-
-                    if (!mostViewedVideo || stats.viewCount > mostViewedVideo.viewCount) {
-                        mostViewedVideo = {...video, ...stats};
-                    }
-
-                    if (!mostLikedVideo || stats.likeCount > mostLikedVideo.likeCount) {
-                        mostLikedVideo = {...video, ...stats};
-                    }
+            // Función para obtener el número de suscriptores
+            async function getSubscriberCount() {
+                try {
+                    const response = await fetch(subscriberUrl);
+                    const data = await response.json();
+                    const subscriberCount = data.items[0].statistics.subscriberCount;
+                    document.getElementById('subscriber-count').textContent = `${formatSubscriberCount(subscriberCount)} `;
+                } catch (error) {
+                    document.getElementById('subscriber-count').textContent = 'Error al cargar';
+                    console.error('Error fetching data:', error.message);
                 }
-
-                // Renderizamos los videos en la página
-                renderVideo('most-viewed', mostViewedVideo, 'Más visto');
-                renderVideo('most-liked', mostLikedVideo, 'Más likeado');
-                renderVideo('latest-video', latestVideo, 'Último video');
-                
-            } catch (error) {
-                console.error('Error al obtener los videos:', error.message);
             }
-        }
 
-        // Función para obtener estadísticas de un video específico
-        async function getVideoStats(videoId) {
-            const url = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoId}&part=statistics`;
-            const response = await fetch(url);
-            const data = await response.json();
-            const stats = data.items[0].statistics;
+            // Formato para el número de suscriptores
+            function formatSubscriberCount(count) {
+                if (count >= 1000000) {
+                    return (count / 1000000).toFixed(1) + 'M';
+                } else if (count >= 1000) {
+                    return (count / 1000).toFixed(1) + 'k';
+                } else {
+                    return count.toString();
+                }
+            }
 
-            return {
-                viewCount: stats.viewCount,
-                likeCount: stats.likeCount,
-            };
-        }
+            // URL de la API de YouTube para obtener los videos del canal
+            const videosUrl = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet&order=date&maxResults=50`;
 
-        // Función para renderizar un video en la página
-        function renderVideo(elementId, videoData, title) {
-            const container = document.getElementById(elementId);
-            const videoId = videoData.id.videoId;
-            const viewCount = videoData.viewCount || 'N/A';
-            const likeCount = videoData.likeCount || 'N/A';
+            // Función para obtener los videos
+            async function getVideos() {
+                try {
+                    const response = await fetch(videosUrl);
+                    const data = await response.json();
+                    const videos = data.items;
 
-            container.innerHTML = `
-                <h3>${title}</h3>
-                <iframe src="https://www.youtube.com/embed/${videoId}" title="${videoData.snippet.title}"></iframe>
-                <div class="video-stats">
-                    <p>${viewCount} vistas</p>
-                    <p>${likeCount} likes</p>
-                </div>
-            `;
-        }
+                    let mostViewedVideo = null;
+                    let mostLikedVideo = null;
+                    let latestVideo = videos[0];
 
-        // Llama a la función para obtener los videos cuando la página carga
-        getVideos();
-    </script>
+                    // Ahora obtenemos las estadísticas de cada video
+                    for (const video of videos) {
+                        const videoId = video.id.videoId;
+                        const stats = await getVideoStats(videoId);
+
+                        if (!mostViewedVideo || stats.viewCount > mostViewedVideo.viewCount) {
+                            mostViewedVideo = {...video, ...stats};
+                        }
+
+                        if (!mostLikedVideo || stats.likeCount > mostLikedVideo.likeCount) {
+                            mostLikedVideo = {...video, ...stats};
+                        }
+                    }
+
+                    // Renderizamos los videos en la página
+                    renderVideo('most-viewed', mostViewedVideo, 'Más visto');
+                    renderVideo('most-liked', mostLikedVideo, 'Más likeado');
+                    renderVideo('latest-video', latestVideo, 'Último video');
+
+                } catch (error) {
+                    console.error('Error al obtener los videos:', error.message);
+                }
+            }
+
+            // Función para obtener estadísticas de un video específico
+            async function getVideoStats(videoId) {
+                const url = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoId}&part=statistics`;
+                const response = await fetch(url);
+                const data = await response.json();
+                const stats = data.items[0].statistics;
+
+                return {
+                    viewCount: stats.viewCount,
+                    likeCount: stats.likeCount,
+                };
+            }
+
+            // Función para renderizar un video en la página
+            function renderVideo(elementId, videoData, title) {
+                const container = document.getElementById(elementId);
+                const videoId = videoData.id.videoId;
+                const viewCount = videoData.viewCount || 'N/A';
+                const likeCount = videoData.likeCount || 'N/A';
+
+                container.innerHTML = `
+                    <h3>${title}</h3>
+                    <iframe src="https://www.youtube.com/embed/${videoId}" title="${videoData.snippet.title}"></iframe>
+                    <div class="video-stats">
+                        <p>${viewCount} vistas</p>
+                        <p>${likeCount} likes</p>
+                    </div>
+                `;
+            }
+            async function getVideoStats(videoId) {
+                try {
+                    const url = `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoId}&part=statistics`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    // Verifica si la respuesta contiene elementos
+                    if (!data.items || data.items.length === 0) {
+                        throw new Error(`No se encontraron estadísticas para el video ID: ${videoId}`);
+                    }
+
+                    const stats = data.items[0].statistics;
+
+                    return {
+                        viewCount: stats.viewCount || 'N/A',
+                        likeCount: stats.likeCount || 'N/A',
+                    };
+                } catch (error) {
+                    console.error('Error al obtener las estadísticas del video:', error.message);
+                    return {
+                        viewCount: 'N/A',
+                        likeCount: 'N/A',
+                    };
+                }
+            }
+
+            // Llama a la función para obtener los suscriptores cuando la página carga
+            getSubscriberCount();
+
+            // Llama a la función para obtener los videos cuando la página carga
+            getVideos();
+        </script>
+
 </body>
 </html>
